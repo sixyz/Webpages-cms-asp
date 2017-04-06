@@ -1,0 +1,7 @@
+﻿
+@{
+    if(!WebUser.IsAuthenticated)
+    {
+        Response.Redirect("~/login/");
+    }
+}

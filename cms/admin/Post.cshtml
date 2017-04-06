@@ -1,0 +1,118 @@
+﻿@{
+    Page.Title = "Title goes here";
+    Layout = "~/admin/_AdminLayout.cshtml";
+
+    //Checkar vilket mode jag är i(edit/delete/create).
+    var mode = Post.Mode;
+    
+    //Om man inte är inloggad som admin/editor/author så kommer man inte åt post'erna.
+    if(!WebUser.HasRole(UserRoles.Admin) && !WebUser.HasRole(UserRoles.Editor) && !WebUser.HasRole(UserRoles.Author))
+    {
+        Response.Redirect("~/admin/");
+    }
+    
+    //Är man en author så får man inte edit'era eller delete'a en post.
+    if((mode == "edit" || mode == "delete" && WebUser.HasRole(UserRoles.Author)))
+    {
+        if(WebUser.UserId != Post.Current.AuthorId)
+        {
+            Response.Redirect("~/admin/post/");
+        }
+    }
+}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <link href="~/stylesheet/StyleSheet.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/javascript" href="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    </script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="~/admin/post">Fotballnews</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="~/admin/post">Post</a></li>
+                <li><a href="~/admin/Role">Role</a></li>
+                <li><a href="~/admin/Tag">Tag</a></li>
+                <li><a href="~/admin/Account">Account</a></li>
+                <li><a href="~/news">News</a></li>
+            </ul>
+        </div>
+    </nav>
+
+
+</head>
+<body>
+</body>
+</html>
+
+
+
+@if (!mode.IsEmpty())
+{
+    var post = Post.Current;
+    var tags = TagRepository.GetAll();//Hämtar alla tags från databasen med funktionen GetAll();
+    var postTags = (IEnumerable<dynamic>)post.Tags;
+    
+    <div>
+        <form name="post" method="post" action="~/admin/post.ashx">
+            @AntiForgery.GetHtml()
+            <input type="hidden" name="mode" value="@mode" />
+            <input type="hidden" name="postAuthorId" value="@post.AuthorId" />
+            <input type="hidden" name="postId" value="@post.Id" />
+            <p>Title: <input type="text" name="postTitle" value="@post.Title" /></p>
+            <p>Content: <textarea name="postContent">@post.Content</textarea></p>
+            <p>Slug: <input type="text" name="postSlug" value="@post.Slug" /></p>
+            <p>Date published: <input type="text" name="postDatePublished" value="@post.DatePublished" /></p>
+            <p>
+                <select name="postTags" multiple>
+                    @foreach(var tag in tags)   /*loopar ut alla tags*/
+                    {
+                        <option value="@tag.Id" selected="@postTags.Any(t => t.Id == tag.Id)">@tag.Name</option>
+                    }
+
+                </select>
+            </p>
+            <p><input type="submit" name="postSubmit" value="Submit" /></p>
+        </form>
+    </div>
+}
+else //Är man inloggad som admin/editor/author och inte är i något "mode" så visar vi våra post's i en gridview-table.
+{
+    var grid = new WebGrid(
+        source: PostRepository.GetAll(orderBy: "DateCreated DESC"),
+       
+        rowsPerPage: 5);
+    
+    
+    
+    
+    @grid.GetHtml(
+        tableStyle: "webgrid-table",
+            headerStyle: "webgrid-header",
+            footerStyle: "webgrid-footer",
+            alternatingRowStyle: "webgrid-alternating-row",
+            selectedRowStyle: "webgrid-selected-row",
+            rowStyle: "webgrid-row-style",
+    columns: grid.Columns(
+    grid.Column(format: @<a href="~/admin/post/edit/@item.Slug">Edit</a>),
+    grid.Column(format: @<a href="~/admin/post/delete/@item.Slug">Delete</a>), 
+    grid.Column("Title"), 
+    grid.Column("DateCreated", header: "Date Created"), 
+    grid.Column("DatePublished", header: "Published"), 
+    grid.Column("AuthorId", header: "Author")
+    )
+    )
+
+        
+        
+}
+

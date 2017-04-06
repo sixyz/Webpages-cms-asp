@@ -1,0 +1,101 @@
+﻿
+
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <link href="~/stylesheet/StyleSheet.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/javascript" href="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    </script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="~/admin/post">Fotballnews</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="~/admin/post">Post</a></li>
+                <li class="active"><a href="~/admin/Role">Role</a></li>
+                <li><a href="~/admin/Tag">Tag</a></li>
+                <li><a href="~/admin/Account">Account</a></li>
+                <li><a href="~/news">News</a></li>
+            </ul>
+        </div>
+    </nav>
+
+
+</head>
+<body>
+
+</body>
+</html>
+
+
+
+@{
+    Page.Title = "Title goes here";
+    Layout = "~/admin/_AdminLayout.cshtml";
+
+    var mode = Role.Mode;
+    //var slug = Post.Slug;
+
+    if(!WebUser.HasRole(UserRoles.Admin))
+    {
+        Response.Redirect("~/admin/");
+    }
+}
+
+
+
+
+
+
+
+
+@if (!mode.IsEmpty())
+{
+    var role = Role.Current;
+    
+    <div>
+        <form name="role" method="post" action="~/admin/role.ashx">
+            @AntiForgery.GetHtml()
+            <input type="hidden" name="mode" value="@mode" />
+            <input type="hidden" name="roleId" value="@role.Id" />
+            <p>Name: <input type="text" name="roleName" value="@role.Name" /></p>
+            
+            <p><input type="submit" name="roleSubmit" value="submit" /></p>
+            </form>
+    </div>
+}
+else
+{
+    <p><a href="~/admin/role/new/">Create new role</a></p>
+    
+    var grid = new WebGrid(
+        source: RoleRepository.GetAll(orderBy: "Name"),
+        rowsPerPage: 5);
+    
+    
+    @grid.GetHtml(
+        tableStyle: "webgrid-table",
+                headerStyle: "webgrid-header",
+                footerStyle: "webgrid-footer",
+                alternatingRowStyle: "webgrid-alternating-row",
+                selectedRowStyle: "webgrid-selected-row",
+                rowStyle: "webgrid-row-style",
+    columns: grid.Columns(
+    grid.Column(format: @<a href="~/admin/role/edit/@item.Name">Edit</a>),
+    grid.Column(format: @<a href="~/admin/role/delete/@item.Name">Delete</a>), 
+    grid.Column("Name")
+    
+    )
+    )
+
+        
+        
+}
+

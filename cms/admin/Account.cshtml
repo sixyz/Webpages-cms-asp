@@ -1,0 +1,108 @@
+﻿@{
+    Page.Title = "Title goes here";
+    Layout = "~/admin/_AdminLayout.cshtml";
+
+    var mode = Post.Mode;
+    //var slug = Post.Slug;
+
+    if(!WebUser.HasRole(UserRoles.Admin))
+    {
+        Response.Redirect("~/admin/");
+    }
+}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <link href="~/stylesheet/StyleSheet.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/javascript" href="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    </script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="~/admin/post">Fotballnews</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="~/admin/post">Post</a></li>
+                <li><a href="~/admin/Role">Role</a></li>
+                <li><a href="~/admin/Tag">Tag</a></li>
+                <li class="active"><a href="~/admin/Account">Account</a></li>
+                <li><a href="~/news">News</a></li>
+            </ul>
+        </div>
+    </nav>
+
+
+</head>
+<body>
+
+</body>
+</html>
+
+
+
+@if (!mode.IsEmpty())
+{
+    var account = Account.Current;
+    var Roles = RoleRepository.GetAll();
+
+    var rolesForUser = WebUser.GetRolesForUser((int)account.Id);
+    
+    //var postTags = (IEnumerable<dynamic>)post.Tags;
+    
+    <div class="form-group">
+        <form name="account" method="post" action="~/admin/account.ashx">
+           @AntiForgery.GetHtml()
+            <input type="hidden" name="mode" value="@mode" />
+            <input type="hidden" name="accountId" value="@account.Id" />
+            <p>Username: <input type="text" name="accountName" value="@account.Username" class="form-control" /></p>
+            <p>Password: <input type="password" name="accountPassword1" class="form-control" /></p>
+            <p>Password: <input type="password" name="accountPassword2" class="form-control" /></p>
+            <p>Email: <input type="text" name="accountEmail" value="@account.Email" class="form-control" /></p>
+            <p>
+                <select name="accountRoles" multiple>
+                    @foreach(var role in Roles)
+                    {
+                        <option value="@role.Id" selected="@rolesForUser.Contains((string)role.Name)">@role.Name</option>
+                    }
+
+                </select>
+            </p>
+            <p><input type="submit" name="postSubmit" value="Submit" /></p>
+        </form>
+    </div>
+}
+else
+{
+
+    <p><a href="~/admin/account/new/">Create new user</a></p>
+
+
+    var grid = new WebGrid(
+        source: AccountRepository.GetAll(orderBy: "Username"),
+        rowsPerPage: 5);
+
+
+
+
+    @grid.GetHtml(
+    columns: grid.Columns(
+    grid.Column(format: @<a href="~/admin/account/edit/@item.Username">Edit</a>),
+    grid.Column(format: @<a href="~/admin/account/delete/@item.Username">Delete</a>), 
+    grid.Column("Username", header: "Username"), 
+    grid.Column("Email", header: "Email")
+    
+    )
+    )
+
+        
+        
+}
+

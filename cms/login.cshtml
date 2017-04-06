@@ -1,0 +1,49 @@
+﻿
+
+@{
+    Page.Title = "Login";
+    Layout = "~/_SiteLayout.cshtml";
+
+    string message = string.Empty;
+    
+    if(IsPost)
+    {
+        var username = Request.Form["username"];
+        var password = Request.Form["password"];
+        
+        if(WebUser.AuthenticateAndLogin(username, password))
+        {
+            Response.Redirect("~/admin/post");
+        }
+
+        message = "Username and/or passord is incorrect";
+    }
+}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <link href="~/stylesheet/StyleSheet.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/javascript" href="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    </script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+</head>
+<body>
+    
+</body>
+</html>
+
+
+
+    <div class="form-group">
+        <div class="error">@message</div>
+        <form name="login" method="post">
+            <p>Username: <input type="text" name="username" class="form-control" /></p>
+            <p>Password: <input type="password" name="password" class="form-control" /></p>
+            <p><input type="submit" value="Login" class="btn btn-default" /></p>
+        </form>
+    </div>
